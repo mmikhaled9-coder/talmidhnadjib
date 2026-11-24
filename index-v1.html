@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>موسوعة التلميذ النجيب | English</title>
+<style>
+*{box-sizing:border-box;font-family:Tahoma,Arial}
+body{margin:0;background:#FFF7E6;color:#222;padding-bottom:90px}
+header{background:#FF6B00;color:#fff;text-align:center;padding:18px 12px;border-radius:0 0 25px 25px}
+header h1{margin:0;font-size:22px}
+header p{margin:5px 0 0;opacity:.9}
+.main{max-width:520px;margin:16px auto;padding:0 12px}
+.card{background:#fff;border-radius:22px;box-shadow:0 8px 25px rgba(0,0,0,.12);padding:22px;text-align:center;border:3px solid #FFD166}
+.card small{color:#FF6B00;font-weight:bold}
+.ar{font-size:34px;font-weight:900;margin:10px 0 2px}
+.en{font-size:32px;font-weight:900;color:#1A73E8;margin:4px 0;direction:ltr}
+.pron{color:#666;background:#F1F3F4;padding:6px 12px;border-radius:20px;display:inline-block;direction:ltr}
+.btns{display:flex;gap:10px;margin-top:16px}
+button{flex:1;border:0;padding:13px;border-radius:14px;font-weight:900;font-size:16px;cursor:pointer}
+.speak{background:#1A73E8;color:#fff}
+.next{background:#FF6B00;color:#fff}
+.prev{background:#eee}
+.tabs{display:flex;gap:8px;overflow:auto;margin:16px 0;flex-wrap:wrap;justify-content:center}
+.tabs button{flex:none;padding:10px 14px;background:#fff;border:2px solid #eee;border-radius:20px}
+.tabs button.active{background:#222;color:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.item{background:#fff;padding:14px;border-radius:16px;text-align:center;box-shadow:0 3px 10px rgba(0,0,0,.07);cursor:pointer}
+.item b{font-size:20px;color:#1A73E8;display:block;direction:ltr}
+.item span{font-size:18px;font-weight:bold}
+.item small{color:#888}
+.list{background:#fff;border-radius:16px;padding:12px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:12px 6px;border-bottom:1px solid #eee;cursor:pointer}
+.row b{color:#1A73E8;font-size:18px}
+.camera{background:#222;color:#fff;width:100%;padding:16px;border-radius:16px;font-size:17px;margin:14px 0}
+#photoResult{background:#fff;padding:14px;border-radius:14px;display:none;text-align:center}
+.whitePage{position:fixed;inset:0;background:#fff;z-index:99;display:none;overflow:auto;padding:16px;text-align:center}
+.whitePage canvas{border:2px dashed #ccc;border-radius:14px;background:#fff;touch-action:none}
+.close{position:fixed;top:12px;left:12px;z-index:100;background:#FF0000;color:#fff}
+footer{text-align:center;margin-top:25px;color:#888}
+footer b{color:#FF6B00}
+</style>
+</head>
+<body>
+<header>
+<h1>📚 موسوعة التلميذ النجيب</h1>
+<p>في اللغة الإنجليزية - تعلم، اسمع، اكتب</p>
+</header>
+
+<div class="main">
+<!-- الشاشة في الوسط -->
+<div class="card">
+<small>✨ الكلمة / الجملة اليوم</small>
+<div class="ar" id="arText">مدرسة</div>
+<div class="en" id="enText">School</div>
+<div class="pron" id="pronText">/ skuːl / - سكول</div>
+<div class="btns">
+<button class="prev" onclick="prevWord()">◀ السابق</button>
+<button class="speak" onclick="speakCurrent()">🔊 اسمع النطق</button>
+<button class="next" onclick="nextWord()">التالي ▶</button>
+</div>
+<p id="counter">1 / 100</p>
+</div>
+
+<!-- زر الكاميرا -->
+<label class="camera" style="display:block;text-align:center;cursor:pointer">📸 التقط صورة لترجمتها
+<input type="file" accept="image/*" capture="environment" hidden onchange="handlePhoto(event)">
+</label>
+<div id="photoResult"></div>
+<p style="text-align:center;color:#666;font-size:13px">صور أي كلمة بالعربية أو الإنجليزية و سنترجمها لك</p>
+
+<!-- الأزرار -->
+<div class="tabs">
+<button class="active" onclick="showTab('words',this)">📖 100 كلمة</button>
+<button onclick="showTab('sentences',this)">💬 جمل</button>
+<button onclick="showTab('letters',this)">🔤 الحروف و نطقها</button>
+<button onclick="showTab('rules',this)">📏 قواعد النطق</button>
+<button onclick="openWriting()" style="background:#FF6B00;color:#fff">✏️ تعلم الكتابة بالنقط</button>
+</div>
+
+<div id="content"></div>
+
+<footer>من إعداد <b>khaled kerrai</b><br>© 2026 موسوعة التلميذ النجيب</footer>
+</div>
+
+<!-- صفحة الكتابة البيضاء -->
+<div class="whitePage" id="writingPage">
+<button class="close" onclick="closeWriting()">✕ إغلاق</button>
+<h2>✏️ اتبع النقط و تعلم الكتابة</h2>
+<p>اختر حرف و ارسم فوقه بإصبعك</p>
+<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center" id="letterBtns"></div>
+<h1 id="bigLetter" style="font-size:80px;margin:10px;color:#1A73E8">A</h1>
+<p id="letterName">A - آي - مثل Apple</p>
+<canvas id="canvas" width="340" height="220"></canvas><br>
+<button onclick="clearCanvas()" style="background:#eee;max-width:200px;margin:10px">🧹 امسح و عاود</button>
+<button onclick="speakLetter()" style="background:#1A73E8;color:#fff;max-width:200px">🔊 اسمع الحرف</button>
+<p style="color:#888">ارسم داخل المستطيل فوق النقط</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+const words=[
+["مدرسة","School","سكول"],["كتاب","Book","بوك"],["قلم","Pen","بن"],["تفاحة","Apple","أبل"],["قطة","Cat","كات"],["كلب","Dog","دوغ"],["شمس","Sun","صن"],["قمر","Moon","مون"],["ماء","Water","ووتر"],["خبز","Bread","بريد"],["حليب","Milk","ميلك"],["بيت","House","هاوس"],["باب","Door","دور"],["نافذة","Window","ويندو"],["معلم","Teacher","تيتشر"],["صديق","Friend","فريند"],["أم","Mother","ماذر"],["أب","Father","فاذر"],["أخ","Brother","براذر"],["أخت","Sister","سيستر"],["شجرة","Tree","تري"],["زهرة","Flower","فلاور"],["طائر","Bird","بيرد"],["سمكة","Fish","فيش"],["أسد","Lion","لايون"],["فيل","Elephant","إليفانت"],["سيارة","Car","كار"],["طائرة","Airplane","إيربلاين"],["قطار","Train","تراين"],["دراجة","Bicycle","بايسيكل"],["هاتف","Phone","فون"],["كمبيوتر","Computer","كمبيوتر"],["طاولة","Table","تايبل"],["كرسي","Chair","تشير"],["سرير","Bed","بيد"],["مطبخ","Kitchen","كيتشن"],["حديقة","Garden","غاردن"],["شارع","Street","ستريت"],["مدينة","City","سيتي"],["قرية","Village","فيلاج"],["بحر","Sea","سي"],["نهر","River","ريفر"],["جبل","Mountain","ماونتن"],["سماء","Sky","سكاي"],["نجمة","Star","ستار"],["سحابة","Cloud","كلاود"],["مطر","Rain","راين"],["ثلج","Snow","سنو"],["صيف","Summer","سمر"],["شتاء","Winter","وينتر"],["يوم","Day","داي"],["ليلة","Night","نايت"],["صباح","Morning","مورنينغ"],["مساء","Evening","إيفنينغ"],["ساعة","Clock","كلوك"],["يوم الاثنين","Monday","مونداي"],["أحمر","Red","ريد"],["أزرق","Blue","بلو"],["أخضر","Green","غرين"],["أصفر","Yellow","يلو"],["أسود","Black","بلاك"],["أبيض","White","وايت"],["كبير","Big","بيغ"],["صغير","Small","سمول"],["سعيد","Happy","هابي"],["حزين","Sad","ساد"],["سريع","Fast","فاست"],["بطيء","Slow","سلو"],["حار","Hot","هوت"],["بارد","Cold","كولد"],["جديد","New","نيو"],["قديم","Old","أولد"],["طويل","Tall","تول"],["قصير","Short","شورت"],["قوي","Strong","سترونغ"],["ضعيف","Weak","ويك"],["جميل","Beautiful","بيوتيفل"],["ذكي","Smart","سمارت"],["لذيذ","Delicious","ديليشس"],["ممتع","Fun","فن"],["سهل","Easy","إيزي"],["صعب","Hard","هارد"],["نظيف","Clean","كلين"],["وسخ","Dirty","ديرتي"],["غني","Rich","ريتش"],["فقير","Poor","بور"],["مريض","Sick","سيك"],["صحي","Healthy","هيلثي"],["نعم","Yes","يس"],["لا","No","نو"],["شكرا","Thank you","ثانك يو"],["من فضلك","Please","بليز"],["مرحبا","Hello","هالو"],["وداعا","Goodbye","غودباي"],["أنا","I","آي"],["أنت","You","يو"],["نحن","We","وي"],["هم","They","ذاي"],["هذا","This","ذيس"],["ذاك","That","ذات"],["أين","Where","وير"],["متى","When","وين"],["لماذا","Why","واي"],["كيف","How","هاو"]
+];
+const sentences=[
+["أنا تلميذ مجتهد","I am a hardworking student","آي آم أ هارد ووركينغ ستيودنت"],
+["أحب مدرستي كثيرا","I love my school very much","آي لوف ماي سكول فيري ماتش"],
+["أنا أتعلم اللغة الإنجليزية","I am learning English","آي آم ليرنينغ إنجليش"],
+["هذا كتابي الجديد","This is my new book","ذيس إز ماي نيو بوك"],
+["أين قلمي؟","Where is my pen?","وير إز ماي بن؟"],
+["شكرا لك يا معلمي","Thank you, my teacher","ثانك يو ماي تيتشر"],
+["أنا ذاهب إلى المدرسة","I am going to school","آي آم غوينغ تو سكول"],
+["الجو جميل اليوم","The weather is beautiful today","ذا ويذر إز بيوتيفل توداي"],
+["أحب أبي و أمي","I love my father and mother","آي لوف ماي فاذر آند ماذر"],
+["هل يمكنك مساعدتي؟","Can you help me?","كان يو هيلب مي؟"]
+];
+const letters=[
+["A","آي","Apple - تفاحة"],["B","بي","Book - كتاب"],["C","سي","Cat - قطة"],["D","دي","Dog - كلب"],["E","إي","Elephant - فيل"],["F","إف","Fish - سمكة"],["G","جي","Garden - حديقة"],["H","إتش","House - بيت"],["I","آي","Ice - ثلج"],["J","جاي","Juice - عصير"],["K","كاي","King - ملك"],["L","إل","Lion - أسد"],["M","إم","Moon - قمر"],["N","إن","Nose - أنف"],["O","أو","Orange - برتقال"],["P","بي","Pen - قلم"],["Q","كيو","Queen - ملكة"],["R","آر","Rain - مطر"],["S","إس","Sun - شمس"],["T","تي","Tree - شجرة"],["U","يو","Umbrella - مظلة"],["V","في","Violin - كمان"],["W","دبل يو","Water - ماء"],["X","إكس","Box - صندوق"],["Y","واي","Yellow - أصفر"],["Z","زد","Zebra - حمار وحشي"]
+];
+let idx=0, mode='words';
+function renderMain(){
+  let d = mode==='words'? words[idx] : sentences[idx];
+  document.getElementById('arText').innerText=d[0];
+  document.getElementById('enText').innerText=d[1];
+  document.getElementById('pronText').innerText=d[2];
+  document.getElementById('counter').innerText=(idx+1)+" / "+(mode==='words'?words.length:sentences.length);
+}
+function speakCurrent(){
+  let t=document.getElementById('enText').innerText;
+  let u=new SpeechSynthesisUtterance(t); u.lang='en-US'; u.rate=0.8; speechSynthesis.speak(u);
+}
+function speakText(t){let u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=0.8;speechSynthesis.speak(u);}
+function nextWord(){let max=mode==='words'?words.length:sentences.length; idx=(idx+1)%max; renderMain();}
+function prevWord(){let max=mode==='words'?words.length:sentences.length; idx=(idx-1+max)%max; renderMain();}
+function showTab(tab,btn){
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  let c=document.getElementById('content');
+  if(tab==='words'){
+    mode='words'; idx=0; renderMain();
+    c.innerHTML='<div class="grid">'+words.map((w,i)=>`<div class="item" onclick="pickWord(${i})"><b>${w[1]}</b><span>${w[0]}</span><br><small>${w[2]} 🔊</small></div>`).join('')+'</div>';
+  } else if(tab==='sentences'){
+    mode='sentences'; idx=0; renderMain();
+    c.innerHTML='<div class="list">'+sentences.map((s,i)=>`<div class="row" onclick="pickSent(${i})"><div><b>${s[1]}</b><br><span>${s[0]}</span></div><span>🔊</span></div>`).join('')+'</div>';
+  } else if(tab==='letters'){
+    c.innerHTML='<div class="grid">'+letters.map(l=>`<div class="item" onclick="speakText('${l[0]}')"><b style="font-size:32px">${l[0]}</b><span>${l[1]}</span><br><small>${l[2]} 🔊</small></div>`).join('')+'</div>';
+  } else if(tab==='rules'){
+    c.innerHTML=`<div class="list">
+    <div class="row"><b>حرف C</b><span>ينطق (ك) قبل a,o,u و (س) قبل e,i</span></div>
+    <div class="row"><b>حرف G</b><span>ينطق (ج) غالبا و (ج) خفيفة قبل e,i</span></div>
+    <div class="row"><b>PH</b><span>تنطق (ف) مثل Phone - فون</span></div>
+    <div class="row"><b>SH</b><span>تنطق (ش) مثل School - سكول</span></div>
+    <div class="row"><b>CH</b><span>تنطق (تش) مثل Chair - تشير</span></div>
+    <div class="row"><b>TH</b><span>تنطق (ذ / ث) مثل This - ذيس</span></div>
+    <div class="row"><b>حرف H</b><span>لا ينطق في Hour - أور</span></div>
+    <div class="row"><b>حرف K</b><span>لا ينطق قبل N مثل Know - نو</span></div>
+    <div class="row"><b>حرف E في الأخير</b><span>لا ينطق لكن يطول الحرف مثل Cake</span></div>
+    <div class="row"><b>حرف W</b><span>لا ينطق قبل R مثل Write - رايت</span></div>
+    </div><p style="text-align:center">💡 نصيحة: اسمع الكلمة 3 مرات و عاودها بصوت عالي!</p>`;
+  }
+}
+function pickWord(i){mode='words';idx=i;renderMain();speakText(words[i][1]);window.scrollTo({top:0,behavior:'smooth'});}
+function pickSent(i){mode='sentences';idx=i;renderMain();speakText(sentences[i][1]);window.scrollTo({top:0,behavior:'smooth'});}
+async function handlePhoto(e){
+  let file=e.target.files[0]; if(!file) return;
+  let r=document.getElementById('photoResult'); r.style.display='block'; r.innerHTML='⏳ جاري قراءة الصورة...';
+  try{
+    let res=await Tesseract.recognize(URL.createObjectURL(file),'ara+eng');
+    let txt=res.data.text.trim();
+    if(!txt) {r.innerHTML='لم نجد كتابة واضحة، عاود صور بوضوح'; return;}
+    r.innerHTML=`وجدنا: <b>${txt}</b><br>⏳ جاري الترجمة...`;
+    let tr=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(txt)}&langpair=ar|en`).then(x=>x.json());
+    let en=tr.responseData.translatedText||txt;
+    r.innerHTML=`<b>${txt}</b> = <b style="color:#1A73E8">${en}</b><br><button onclick="speakText('${en.replace(/'/g,"")}')" style="background:#1A73E8;color:#fff;margin-top:8px">🔊 اسمع النطق</button>`;
+  }catch(err){r.innerHTML='صارت مشكلة، عاود حاول';}
+}
+// الكتابة بالنقط
+let curLetter='A';
+function openWriting(){document.getElementById('writingPage').style.display='block';buildLetterBtns();drawDotted();}
+function closeWriting(){document.getElementById('writingPage').style.display='none';}
+function buildLetterBtns(){document.getElementById('letterBtns').innerHTML=letters.map(l=>`<button onclick="setLetter('${l[0]}','${l[1]}','${l[2]}')" style="flex:none;padding:8px 12px;background:#F1F3F4">${l[0]}</button>`).join('');}
+function setLetter(l,pron,ex){curLetter=l;document.getElementById('bigLetter').innerText=l;document.getElementById('letterName').innerText=l+' - '+pron+' - مثل '+ex;drawDotted();}
+function speakLetter(){speakText(curLetter);}
+let canvas=document.getElementById('canvas'), ctx=canvas.getContext('2d'), drawing=false;
+function drawDotted(){
+  ctx.clearRect(0,0,340,220); ctx.font='160px Arial'; ctx.fillStyle='#eee'; ctx.textAlign='center';
+  ctx.setLineDash([2,8]); ctx.strokeStyle='#bbb'; ctx.lineWidth=2;
+  ctx.strokeText(curLetter,170,170); ctx.setLineDash([]);
+  ctx.fillStyle='#ddd'; ctx.fillText(curLetter,170,170);
+}
+function clearCanvas(){drawDotted();}
+canvas.addEventListener('pointerdown',e=>{drawing=true;draw(e)});
+canvas.addEventListener('pointermove',e=>{if(drawing) draw(e)});
+canvas.addEventListener('pointerup',()=>drawing=false);
+function draw(e){
+  let rect=canvas.getBoundingClientRect(); let x=e.clientX-rect.left, y=e.clientY-rect.top;
+  ctx.fillStyle='#FF6B00'; ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
+}
+showTab('words');
+renderMain();
+</script>
+</body>
+</html>
